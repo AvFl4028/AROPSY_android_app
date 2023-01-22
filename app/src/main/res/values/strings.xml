@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">AROPSY</string>
+    <string name="connection">Connection</string>
+    <string name="devices">Devices</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="controls">Controls</string>
+    <string name="up">Up</string>
+    <string name="down">Down</string>
+    <string name="enter">Enter</string>
+    <string name="back">Back</string>
+
+    <string name="imgRefresh">Refresh</string>
+</resources>
