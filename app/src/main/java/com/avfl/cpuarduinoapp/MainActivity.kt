@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -31,56 +32,63 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+    }
 
-        val refresh:ImageButton = findViewById(R.id.refresh)
-        val connect: Button = findViewById(R.id.connect)
-        val spinDevices:Spinner = findViewById(R.id.devicesList)
-        val btnUp:Button = findViewById(R.id.up)
-        val btnDown: Button = findViewById(R.id.down)
-        val btnEnter: Button = findViewById(R.id.enter)
-        val btnBack: Button = findViewById(R.id.back)
-
-        mAddressDevices = ArrayAdapter(this, android.R.layout.simple_list_item_1)
-        mNameDevices = ArrayAdapter(this, android.R.layout.simple_list_item_1)
-
+    fun refresh(view: View) {
+        val spinDevices: Spinner = findViewById(R.id.devicesList)
         btAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
-        if (btAdapter.isEnabled){
+        if (btAdapter.isEnabled) {
             Toast.makeText(this, "Bluetooth is enable", Toast.LENGTH_SHORT).show()
-        }else{
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED){
+        } else {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 Log.i("MainActivity", "Activity")
             }
         }
 
+        mAddressDevices = ArrayAdapter(this, android.R.layout.simple_list_item_1)
+        mNameDevices = ArrayAdapter(this, android.R.layout.simple_list_item_1)
 
-        refresh.setOnClickListener{
-            if (btAdapter.isEnabled){
-                val pairedDevice:Set<BluetoothDevice> = btAdapter.bondedDevices
-                mAddressDevices!!.clear()
-                mNameDevices!!.clear()
+        if (btAdapter.isEnabled) {
+            val pairedDevice: Set<BluetoothDevice> = btAdapter.bondedDevices
+            mAddressDevices!!.clear()
+            mNameDevices!!.clear()
 
-                pairedDevice.forEach{
-                    device ->
-                    val deviceName = device.name
-                    val deviceAddress = device.address
+            pairedDevice.forEach { device ->
+                val deviceName = device.name
+                val deviceAddress = device.address
 
-                    mAddressDevices!!.add(deviceAddress)
-                    mNameDevices!!.add(deviceName)
-                }
-                spinDevices.adapter = mNameDevices
+                mAddressDevices!!.add(deviceAddress)
+                mNameDevices!!.add(deviceName)
             }
-            else
-            {
-                val noDevices = "No hay dispositivos disponibles"
-                mAddressDevices!!.add(noDevices)
-                mNameDevices!!.add(noDevices)
-                Toast.makeText(this, "No devices connected", Toast.LENGTH_SHORT).show()
-            }
+
+            spinDevices.adapter = mNameDevices
+
+        } else {
+            val noDevices = "There's no available devices"
+            mAddressDevices!!.add(noDevices)
+            mNameDevices!!.add(noDevices)
+            Toast.makeText(this, "No devices connected", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun connect(view: View) {
+        val spinDevices: Spinner = findViewById(R.id.devicesList)
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i("MainActivity", "Activity")
         }
 
-        connect.setOnClickListener{
+        if (btAdapter.isEnabled) {
             try {
-                if (m_bluetoothSocket == null || !m_isConnected){
+                if (m_bluetoothSocket == null || !m_isConnected) {
 
                     val intValSpin = spinDevices.selectedItemPosition
                     m_address = mAddressDevices!!.getItem(intValSpin).toString()
@@ -91,33 +99,58 @@ class MainActivity : AppCompatActivity() {
                     m_bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
                     m_bluetoothSocket!!.connect()
                 }
+
                 Toast.makeText(this, "Connection is ready!", Toast.LENGTH_SHORT).show()
-            }catch (e: IOException){
+
+            } catch (e: IOException) {
                 e.printStackTrace()
                 Toast.makeText(this, "Connection error", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            Toast.makeText(this, "Bluetooth is activating", Toast.LENGTH_SHORT).show()
+            btAdapter.enable()
         }
 
-        btnUp.setOnClickListener{
-            sendCommand("1")
-        }
-
-        btnDown.setOnClickListener{
-            sendCommand("2")
-        }
-        btnEnter.setOnClickListener{
-            sendCommand("3")
-        }
-        btnBack.setOnClickListener{
-            sendCommand("4")
-        }
     }
 
-    private fun sendCommand(input:String){
-        if (m_bluetoothSocket != null){
+    fun btnDisconnect(view: View) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i("MainActivity", "Activity")
+        }
+        if (btAdapter.isEnabled) {
+            btAdapter.disable()
+            Toast.makeText(this, "Bluetooth is now disable", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Bluetooth was disable before", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    fun btnUp(view: View) {
+        sendCommand("1")
+    }
+
+    fun btnDown(view: View) {
+        sendCommand("2")
+    }
+
+    fun btnEnter(view: View) {
+        sendCommand("3")
+    }
+
+    fun btnBack(view: View) {
+        sendCommand("4")
+    }
+
+    private fun sendCommand(input: String) {
+        if (m_bluetoothSocket != null) {
             try {
                 m_bluetoothSocket!!.outputStream.write(input.toByteArray())
-            }catch (e:IOException){
+            } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
