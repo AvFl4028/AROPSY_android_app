@@ -1,4 +1,5 @@
 <resources>
+    //MainActivity Strings
     <string name="app_name">AROPSY</string>
     <string name="connection">Connection</string>
     <string name="devices">Devices</string>
@@ -9,6 +10,15 @@
     <string name="down">Down</string>
     <string name="enter">Enter</string>
     <string name="back">Back</string>
+    <string name="sendText">Send Text</string>
+    <array name="noDevices">
+        <item>No Devices</item>
+    </array>
 
     <string name="imgRefresh">Refresh</string>
+
+    //SendText Strings
+
+    <string name="send">Send</string>
+    <string name="data">Data</string>
 </resources>

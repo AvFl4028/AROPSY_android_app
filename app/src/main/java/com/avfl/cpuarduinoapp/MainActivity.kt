@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -20,6 +21,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btAdapter: BluetoothAdapter
     private var mAddressDevices: ArrayAdapter<String>? = null
     private var mNameDevices: ArrayAdapter<String>? = null
+    private lateinit var spinDevices: Spinner
+    private var intValSpin:Int = 0
 
     companion object {
         var m_myUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
@@ -32,11 +35,19 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        btAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
+        spinDevices = findViewById(R.id.devicesList)
+
+        ArrayAdapter.createFromResource(this, R.array.noDevices, android.R.layout.simple_list_item_1).also { adapter ->
+            // Specify the layout to use when the list of choices appears
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            // Apply the adapter to the spinner
+            spinDevices.adapter = adapter
+        }
+
     }
 
     fun refresh(view: View) {
-        val spinDevices: Spinner = findViewById(R.id.devicesList)
-        btAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
         if (btAdapter.isEnabled) {
             Toast.makeText(this, "Bluetooth is enable", Toast.LENGTH_SHORT).show()
         } else {
@@ -71,7 +82,12 @@ class MainActivity : AppCompatActivity() {
             val noDevices = "There's no available devices"
             mAddressDevices!!.add(noDevices)
             mNameDevices!!.add(noDevices)
-            Toast.makeText(this, "No devices connected", Toast.LENGTH_SHORT).show()
+
+            if(!btAdapter.isEnabled){
+                Toast.makeText(this, "Bluetooth is disable", Toast.LENGTH_SHORT).show()
+            }else {
+                Toast.makeText(this, "No devices connected", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -89,11 +105,19 @@ class MainActivity : AppCompatActivity() {
         if (btAdapter.isEnabled) {
             try {
                 if (m_bluetoothSocket == null || !m_isConnected) {
+                    intValSpin = spinDevices.selectedItemPosition
 
-                    val intValSpin = spinDevices.selectedItemPosition
+                    if(mAddressDevices == null){
+                        return
+                    }
+
                     m_address = mAddressDevices!!.getItem(intValSpin).toString()
                     Toast.makeText(this, m_address, Toast.LENGTH_SHORT).show()
                     btAdapter.cancelDiscovery()
+
+                    if(m_address == "There's no available devices"){
+                        return
+                    }
 
                     val device = btAdapter.getRemoteDevice(m_address)
                     m_bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
@@ -146,13 +170,20 @@ class MainActivity : AppCompatActivity() {
         sendCommand("4")
     }
 
-    private fun sendCommand(input: String) {
+    fun sendTextActivity(view: View){
+        val intent = Intent(this, SendText::class.java)
+        startActivity(intent)
+    }
+
+fun sendCommand(input: String) {
         if (m_bluetoothSocket != null) {
             try {
                 m_bluetoothSocket!!.outputStream.write(input.toByteArray())
             } catch (e: IOException) {
                 e.printStackTrace()
             }
+        }else{
+            Toast.makeText(this, "No connected", Toast.LENGTH_SHORT).show()
         }
     }
 }
